@@ -11,7 +11,7 @@ import type { Metadata } from "next";
 export const revalidate = 60;
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
@@ -20,7 +20,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
   if (!post) return { title: "Post Not Found" };
 
   const imageUrl = getImageUrlFull(post.cover_image);
@@ -46,9 +47,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BlogPostPage({ params }: Props) {
+  const { slug } = await params;
   const [post, related] = await Promise.all([
-    getPostBySlug(params.slug),
-    getPostBySlug(params.slug).then((p) =>
+    getPostBySlug(slug),
+    getPostBySlug(slug).then((p) =>
       p ? getRelatedPosts(p.slug, p.tags || []) : []
     ),
   ]);
@@ -205,4 +207,5 @@ export default async function BlogPostPage({ params }: Props) {
       <Footer />
     </div>
   );
-}
+    }
+                                
